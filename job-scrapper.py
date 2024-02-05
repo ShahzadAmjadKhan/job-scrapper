@@ -17,18 +17,6 @@ import datetime
 # Job class to hold data of job
 class Job:
 
-    address = None
-    german_kenntnisse = None
-    homeoffice = None
-    contract = None
-    valid_from = None
-    working_hours = None
-    job_description = None
-    application_text = None
-    application_link = None
-    application_email = None
-    Is_pdf = False
-
     def __init__(self, job_id, date, title, type, extern, lat, long, logo, firma, url):
         self.JobID = job_id
         self.datum = date
@@ -43,6 +31,17 @@ class Job:
         self.logo = logo
         self.firma = firma
         self.url = url
+        self.Is_pdf = False
+        self.address = None
+        self.german_kenntnisse = None
+        self.homeoffice = None
+        self.contract = None
+        self.valid_from = None
+        self.working_hours = None
+        self.job_description = None
+        self.application_text = None
+        self.application_link = None
+        self.application_email = None
 
 
 JOBS_JSON_URL = "https://jobs.hochschuljobboerse.de/srv.php/Suche/offers"
@@ -207,9 +206,9 @@ def start_scraping(browser, jobs):
                     browser = initialize_browser()
                     retry -= 1
             if records_read >= 10:
-               records_read = 0
-               print("Writing records in Json file")
-               write_in_json(my_jobs)
+                records_read = 0
+                print("Writing records in Json file")
+                write_in_json(my_jobs)
             
 
     return my_jobs
@@ -219,7 +218,7 @@ def start_scraping(browser, jobs):
 def write_in_json(my_jobs):
 
     with open('jobs.json', 'w') as f:
-        f.write(json.dumps([j.__dict__ for j in my_jobs], sort_keys=False))
+        f.write(json.dumps([vars(j) for j in my_jobs], sort_keys=False))
 
 
 if __name__ == "__main__":
