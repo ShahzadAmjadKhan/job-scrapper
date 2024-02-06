@@ -78,6 +78,10 @@ def get_job_html(browser, url):
         browser.get(first_frame_url)
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.TAG_NAME, 'iframe')))
         browser.switch_to.frame(browser.find_element(By.TAG_NAME, 'iframe'))
+        body = browser.find_element(By.TAG_NAME, 'body')
+        if body.text == "Die Seite, die Sie aufrufen wollten, ist auf diesem Server nicht vorhanden.":
+            return "No Job Text"
+
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, '__next')))
         job_div = browser.find_element(By.ID, '__next')
         print("{}: Retrieved Job content from URL: {}".format(datetime.datetime.now(), url))
@@ -184,7 +188,7 @@ def get_job(job):
 def start_scraping(browser, jobs):
     my_jobs = []
     records_read = 0
-    for job in jobs["jobs"]:
+    for job in jobs["jobs"][:50]:
         date = datetime.datetime.strptime(job["datum"], '%d.%m.%Y')
         retry = 2
         if date.year >= 2024:
@@ -192,7 +196,10 @@ def start_scraping(browser, jobs):
                 try:
                     my_job = get_job(job)
                     job_html = get_job_html(browser, job["url"])
-                    set_job_scrapped_data(browser, job_html, my_job)
+                    if job_html != "No Job Text":
+                        set_job_scrapped_data(browser, job_html, my_job)
+                    else:
+                        print("No Job Text available to scrape for url: ".format(job["url"]))
                     my_jobs.append(my_job)
                     retry = 0
                     records_read += 1
@@ -209,7 +216,6 @@ def start_scraping(browser, jobs):
                 records_read = 0
                 print("Writing records in Json file")
                 write_in_json(my_jobs)
-            
 
     return my_jobs
 
@@ -217,8 +223,8 @@ def start_scraping(browser, jobs):
 # Function to write the jobs list in json file
 def write_in_json(my_jobs):
 
-    with open('jobs.json', 'w') as f:
-        f.write(json.dumps([vars(j) for j in my_jobs], sort_keys=False))
+    with open('jobs.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps([vars(j) for j in my_jobs], sort_keys=False, ensure_ascii=False))
 
 
 if __name__ == "__main__":
